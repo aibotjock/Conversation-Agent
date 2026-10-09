@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11666c">
+  <title>Conversation Circle — Local Mock Demo</title>
+  <link rel="stylesheet" href="../voice-circle.css">
+  <style>
+    :root{color-scheme:light;font-family:system-ui,sans-serif;color:#173e43;background:#edf4f1}
+    body{margin:0;padding:clamp(1rem,4vw,3rem)}main{max-width:54rem;margin:auto}h1{font-size:clamp(1.65rem,4vw,2.3rem);margin:.25rem 0}.intro{max-width:44rem;line-height:1.6}.badge{display:inline-block;padding:.35rem .65rem;border-radius:2rem;background:#fff4d7;font-size:.8rem;font-weight:700}fieldset{border:1px solid #bdd3ca;border-radius:.8rem;background:#fff;padding:1rem;margin:1.2rem 0;display:grid;gap:.75rem}legend{font-weight:700}.options{display:flex;flex-wrap:wrap;gap:1rem}label{line-height:1.5}button{font:inherit;padding:.65rem .9rem;border:1px solid #9bbdb3;border-radius:.65rem;background:#fff;color:#174e54;cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #926911;outline-offset:3px}button:disabled{opacity:.5;cursor:default}.help{font-size:.9rem;line-height:1.5;margin:.25rem 0;color:#456467}.events{margin:1.25rem 0;padding:1rem;border-radius:.8rem;border:1px solid #c8dad2;background:#fff}.events h2{font-size:1rem;margin:0 0 .5rem}.events pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.8rem}.demo-alert{padding:.85rem;border-radius:.7rem;background:#fff0cf;line-height:1.5}footer{font-size:.8rem;color:#456467;line-height:1.5;margin:1.5rem 0}
+  </style>
+</head>
+<body>
+  <main>
+    <span class="badge">Local mock · No AI inference</span>
+    <h1>Conversation Circle</h1>
+    <p class="intro">Try the reusable voice controls, typed conversation, and interruption flow. Replies are fixed, nonfactual demo text. This page does not connect to a provider, accept an API key, or answer study questions.</p>
+    <fieldset>
+      <legend>Demo inputs and playback</legend>
+      <div class="options">
+        <label><input type="radio" name="input-mode" value="mock" checked> Synthetic input</label>
+        <label><input type="radio" name="input-mode" value="microphone"> Real microphone, mock transcript</label>
+      </div>
+      <label><input id="browser-speech" type="checkbox"> Speak fixed demo replies with browser speech synthesis</label>
+      <label><input id="manual-play" type="checkbox"> Simulate audio requiring a manual Play reply click</label>
+      <p class="help">Synthetic input and silent playback work without microphone permission. With the microphone selected, audio is captured locally to exercise the input path; the mock transcriber does not infer words. No captured audio is saved or sent by this demo. Optional speech uses only voices the browser reports as local; availability depends on your browser and operating system.</p>
+      <div class="options">
+        <button id="mock-turn" type="button">Simulate spoken turn</button>
+        <button id="mock-interrupt" type="button">Simulate speech interruption</button>
+      </div>
+    </fieldset>
+    <p id="demo-notice" class="demo-alert" role="status" aria-live="polite">Loading the local agent…</p>
+    <div id="voice-circle"></div>
+    <section class="events" aria-label="Demo lifecycle">
+      <h2>Lifecycle state</h2>
+      <pre id="lifecycle">No session yet.</pre>
+    </section>
+    <footer>Serve the repository over localhost with <code>python -m http.server 8000</code> and open <code>http://localhost:8000/demo/</code>. Real microphone access requires a secure context and browser permission. Mobile foreground behavior, speaker echo, and physical audibility require device testing.</footer>
+  </main>
+  <script type="module" src="./demo.js"></script>
+</body>
+</html>
