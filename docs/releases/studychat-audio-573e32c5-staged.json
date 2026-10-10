@@ -1,0 +1,82 @@
+{
+  "recordedAt": "2026-10-10T02:06:26.179Z",
+  "status": "STAGED_NOT_DEPLOYED",
+  "source": {
+    "repository": "aibotjock/AI-FM-STUDYCHAT",
+    "branch": "feature/conversation-agent",
+    "commitSha": "573e32c5ed3d5f23bc527396719ce85c79192627",
+    "treeSha": "c4d6209f7de5411531118d27ae080e7bffc5f81b"
+  },
+  "conversationAgent": {
+    "version": "0.1.1",
+    "sourceRevision": "3ecd4c0aeef2cb3eacfe8d7ad2e1520c14941cae",
+    "treeSha": "5b8b99af9330fc55877e54c2525969b72c3211b5"
+  },
+  "railway": {
+    "projectId": "3d314e6c-8def-4947-949a-eef7ce930e63",
+    "environmentId": "05fb154d-1946-4db0-bf4e-786727e505df",
+    "serviceId": "78d73fb2-96fa-45bc-97e4-6aa108724dc5",
+    "patch": {
+      "patchId": "18c672b0-6d7e-49a5-8074-6c88417c665b",
+      "status": "STAGED",
+      "changeCount": 1,
+      "message": null,
+      "createdAt": "2026-10-10T02:05:01.573Z",
+      "updatedAt": "2026-10-10T02:05:01.573Z"
+    },
+    "destructive": false,
+    "resources": [
+      {
+        "kind": "service",
+        "id": "78d73fb2-96fa-45bc-97e4-6aa108724dc5",
+        "name": "family-medicine-phone-test",
+        "action": "update",
+        "changes": [
+          {
+            "path": "services.78d73fb2-96fa-45bc-97e4-6aa108724dc5.source.commitSha",
+            "displayName": "Commit Sha",
+            "type": "updated",
+            "from": "1b894b9e1d72a224d35f211137739bab5b729692",
+            "to": "573e32c5ed3d5f23bc527396719ce85c79192627",
+            "destructive": false
+          }
+        ]
+      }
+    ],
+    "sharedVariables": [],
+    "privateNetworkDisabled": null
+  },
+  "priorLiveDeployment": {
+    "id": "d8631bd4-3893-40a1-bbd9-5b4f4cbae87b",
+    "status": "SUCCESS",
+    "commitHash": "38dc4eac8d0b32239126986a7edd2d4c690b079e",
+    "createdAt": "2026-10-10T00:28:46.926Z"
+  },
+  "worker": "Requested Luna 6 staged the source; root independently reviewed the exact patch.",
+  "validation": {
+    "uniqueFocusedGroupsPassed": 24,
+    "player": 15,
+    "package": 7,
+    "host": 2,
+    "paidProviderCalls": 0,
+    "details": "AI-FM-STUDYCHAT/qa/audio-delay-repair-results.json",
+    "physicalPhoneAudibilityVerified": false,
+    "browserScenariosExecuted": 0,
+    "browserScenariosPending": 9
+  },
+  "handoff": {
+    "reason": "Previously stalled native accept-deploy control was not retried or bypassed.",
+    "next": "Owner Apply the one-change patch in private-test dashboard; verify terminal SUCCESS and actual commit, then new served player/core/circle/shell-v12 hashes before phone trial.",
+    "appUrl": "https://family-medicine-phone-test-private-test.up.railway.app",
+    "storePublicationAuthorized": false,
+    "commercialActivationAuthorized": false
+  },
+  "preserved": [
+    "Existing data volume and domain",
+    "ECR build configuration",
+    "Medical review/source authorization",
+    "Five voices",
+    "Account and request boundaries",
+    "Existing model/corpus/scheduler/Ingenium/billing"
+  ]
+}
