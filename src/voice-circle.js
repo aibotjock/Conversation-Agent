@@ -7,6 +7,10 @@ const PHASE_LABELS = {
   error: 'Conversation needs attention',
 };
 
+// Avoid replacing caption nodes and repeating accessibility writes on timer ticks.
+function setText(element, value) { if (element.textContent !== value) element.textContent = value; }
+function setAttribute(element, name, value) { if (element.getAttribute(name) !== value) element.setAttribute(name, value); }
+
 function readable(value, fallback) {
   if (typeof value !== 'string' || !value.trim()) return fallback;
   return value.replace(/[-_]/g, ' ');
@@ -35,9 +39,9 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
     listeners.push(() => element.removeEventListener(type, handler));
   };
   const wrapper = make('section', 'conversation-voice-circle');
-  wrapper.setAttribute('aria-label', 'Voice conversation');
+  setAttribute(wrapper, 'aria-label', 'Voice conversation');
   const motionPreference = reducedMotion ?? documentImpl.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-  wrapper.setAttribute('data-reduced-motion', String(Boolean(motionPreference)));
+  setAttribute(wrapper, 'data-reduced-motion', String(Boolean(motionPreference)));
   const center = make('div', 'voice-center');
   const orb = make('button', 'voice-orb');
   orb.type = 'button';
@@ -46,8 +50,8 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
   orb.appendChild(orbTitle);
   orb.appendChild(orbHint);
   const status = make('p', 'voice-status', 'Ready to begin');
-  status.setAttribute('role', 'status');
-  status.setAttribute('aria-live', 'polite');
+  setAttribute(status, 'role', 'status');
+  setAttribute(status, 'aria-live', 'polite');
   const channels = make('p', 'voice-channels');
   center.appendChild(orb);
   center.appendChild(status);
@@ -56,11 +60,11 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
   const controls = make('div', 'voice-controls');
   wrapper.appendChild(controls);
   const notice = make('p', 'voice-notice');
-  notice.setAttribute('role', 'status');
-  notice.setAttribute('aria-live', 'polite');
+  setAttribute(notice, 'role', 'status');
+  setAttribute(notice, 'aria-live', 'polite');
   wrapper.appendChild(notice);
   const warning = make('p', 'voice-notice');
-  warning.setAttribute('role', 'alert');
+  setAttribute(warning, 'role', 'alert');
   wrapper.appendChild(warning);
   const captions = make('div', 'voice-captions');
   const caption = (label, initial) => {
@@ -79,7 +83,7 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
   const failed = () => {
     if (!destroyed) {
       warning.hidden = false;
-      warning.textContent = 'That action could not finish. Try again or use the text controls.';
+      setText(warning, 'That action could not finish. Try again or use the text controls.');
     }
   };
   const invoke = (action) => {
@@ -106,7 +110,7 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
     const label = make('label', '', 'Type a message');
     textarea = make('textarea');
     textarea.rows = 2;
-    textarea.setAttribute('aria-label', 'Type a message');
+    setAttribute(textarea, 'aria-label', 'Type a message');
     label.appendChild(textarea);
     form.appendChild(label);
     send = make('button', '', 'Send message');
@@ -149,31 +153,30 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
     const phaseLabel = phase === 'paused'
       ? current.audioBlocked ? blockedLabel : current.muted ? 'Microphone muted' : current.inputState === 'unavailable' ? 'Microphone unavailable' : 'Conversation paused'
       : PHASE_LABELS[phase] || readable(phase, 'Ready to begin');
-    orbTitle.textContent = isActive ? 'Stop conversation' : 'Start conversation';
-    orbHint.textContent = phaseLabel;
-    orb.setAttribute('aria-label', orbTitle.textContent);
-    orb.setAttribute('aria-pressed', String(isActive));
-    status.textContent = current.setupPending ? 'Setting up microphone' : phaseLabel;
+    setText(orbTitle, isActive ? 'Stop conversation' : 'Start conversation');
+    setText(orbHint, phaseLabel);
+    setAttribute(orb, 'aria-label', orbTitle.textContent);
+    setAttribute(orb, 'aria-pressed', String(isActive));
+    setText(status, current.setupPending ? 'Setting up microphone' : phaseLabel);
     const microphoneLabel = !isActive || current.inputState === 'off'
       ? current.muted ? 'Microphone muted' : 'Microphone off'
       : current.muted ? 'Microphone muted'
       : ({ starting: 'Microphone starting', capturing: 'Listening to your message', monitoring: 'Microphone on', listening: 'Microphone on', unavailable: 'Microphone unavailable', muted: 'Microphone muted' })[current.inputState] || 'Microphone status unavailable';
     const outputLabel = ({ idle: 'Ready', generating: 'Preparing reply', transcribing: 'Transcribing', preparing: 'Preparing audio', playing: 'Reply playing', blocked: blockedLabel, error: 'Reply needs attention', checking: 'Checking reply' })[current.outputState] || 'Reply status unavailable';
-    channels.textContent = `${microphoneLabel} · ${outputLabel}`;
-    userCaption.textContent = typeof current.userCaption === 'string' && current.userCaption ? current.userCaption : 'Your words will appear here.';
-    assistantCaption.textContent = typeof current.assistantCaption === 'string' && current.assistantCaption ? current.assistantCaption : 'The reply will appear here.';
-    notice.textContent = typeof current.message === 'string' ? current.message : '';
+    setText(channels, `${microphoneLabel} · ${outputLabel}`);
+    setText(userCaption, typeof current.userCaption === 'string' && current.userCaption ? current.userCaption : 'Your words will appear here.');
+    setText(assistantCaption, typeof current.assistantCaption === 'string' && current.assistantCaption ? current.assistantCaption : 'The reply will appear here.');
+    setText(notice, typeof current.message === 'string' ? current.message : '');
     notice.hidden = !showNotice || !notice.textContent;
-    warning.textContent = typeof current.warning === 'string' ? current.warning : '';
+    setText(warning, typeof current.warning === 'string' ? current.warning : '');
     warning.hidden = !warning.textContent;
     if (interrupt) interrupt.disabled = !isActive;
     if (mute) {
-      mute.textContent = current.muted ? 'Unmute microphone' : 'Mute microphone';
-      mute.setAttribute('aria-pressed', String(Boolean(current.muted)));
+      setText(mute, current.muted ? 'Unmute microphone' : 'Mute microphone');
+      setAttribute(mute, 'aria-pressed', String(Boolean(current.muted)));
       mute.disabled = !isActive;
     }
     if (replay) {
-      replay.textContent = 'Play prepared audio';
       replay.hidden = !current.audioBlocked;
       replay.disabled = !isActive;
     }
@@ -184,9 +187,9 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
       }
       send.disabled = pendingText;
     }
-    wrapper.setAttribute('data-phase', phase);
-    wrapper.setAttribute('data-input-state', typeof current.inputState === 'string' ? current.inputState : 'off');
-    wrapper.setAttribute('data-output-state', typeof current.outputState === 'string' ? current.outputState : 'idle');
+    setAttribute(wrapper, 'data-phase', phase);
+    setAttribute(wrapper, 'data-input-state', typeof current.inputState === 'string' ? current.inputState : 'off');
+    setAttribute(wrapper, 'data-output-state', typeof current.outputState === 'string' ? current.outputState : 'idle');
   };
   update(typeof agent.state === 'function' ? agent.state() : {});
 
@@ -202,3 +205,4 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
     },
   };
 }
+
