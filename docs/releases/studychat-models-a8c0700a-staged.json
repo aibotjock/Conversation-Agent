@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-10T02:19:26.253Z",
+  "state": "STAGED_NOT_APPLIED",
+  "purpose": "Owner-requested bounded genuine Luna 6 / Terra 5.6 metadata comparison",
+  "studychat": {
+    "repository": "aibotjock/AI-FM-STUDYCHAT",
+    "branch": "feature/conversation-agent",
+    "commit": "a8c0700a51a33c46190e31569026f2e6c7c5ca2a",
+    "tree": "95a45ad680b6a0ad42b9d565f8ec7a1f9dc2a627",
+    "parent": "573e32c5ed3d5f23bc527396719ce85c79192627"
+  },
+  "reusablePackage": {
+    "version": "0.1.1",
+    "sourceCommit": "3ecd4c0aeef2cb3eacfe8d7ad2e1520c14941cae",
+    "runtimeChanged": false
+  },
+  "railway": {
+    "projectId": "3d314e6c-8def-4947-949a-eef7ce930e63",
+    "environmentId": "05fb154d-1946-4db0-bf4e-786727e505df",
+    "environment": "private-test",
+    "serviceId": "78d73fb2-96fa-45bc-97e4-6aa108724dc5",
+    "patchId": "e6897bf5-121c-45df-8260-1f55e30df08e",
+    "status": "STAGED",
+    "changeCount": 3,
+    "destructive": false,
+    "sourceCommit": "a8c0700a51a33c46190e31569026f2e6c7c5ca2a",
+    "stagedVariableNames": [
+      "INGENIUM_INITIAL_CONNECTION_CHECK",
+      "OPENAI_MODEL"
+    ],
+    "requestedNonsecretSettings": {
+      "OPENAI_MODEL": "gpt-6-luna",
+      "INGENIUM_INITIAL_CONNECTION_CHECK": "luna6-terra56-ready-v1"
+    },
+    "valuesVisibleInReadback": false,
+    "rootIndependentlyReviewed": true,
+    "sharedVariableChanges": 0,
+    "networkChanges": 0
+  },
+  "currentLive": {
+    "deploymentId": "7d69ce92-913d-4013-ba3e-db2f3eb3601e",
+    "status": "SUCCESS",
+    "resolvedCommit": "573e32c5ed3d5f23bc527396719ce85c79192627",
+    "selectedModel": "gpt-4.1-mini",
+    "audioRepairAssetMatches": 6,
+    "physicalAudioAcceptance": "Pending"
+  },
+  "checks": {
+    "passed": 10,
+    "new": 6,
+    "affectedExisting": 4,
+    "realProviderCalls": 0,
+    "paidCompletionUpperBoundAfterApply": 2,
+    "billedOutputTokenCeilingPerCheck": 512,
+    "candidatesInOrder": [
+      "gpt-5.6-terra",
+      "gpt-6-luna"
+    ],
+    "finalPreferredModel": "gpt-6-luna",
+    "requiresFreshAccountAccessForBoth": true,
+    "requiresAuthenticatedSelectionReadback": true,
+    "reusesDurableCompletedResults": true,
+    "retriesUncertainResults": false,
+    "clinicalAccuracy": "Not evaluated"
+  },
+  "ingenium": {
+    "baselineGenuineRequestedModelRows": 0,
+    "organizationId": "21bca727-553f-4df8-a2c6-e702f45e4ca2",
+    "newGenuineData": "Pending Apply and verified receiver ingestion",
+    "export": "Metadata only; no prompts, responses, audio or credentials"
+  },
+  "nextSteps": [
+    "Owner applies this exact three-change private patch in Railway; previous connector acceptance stalled and was not retried.",
+    "Verify resolved build identity and SUCCESS, safe comparison receipt, active Luna model, and organization-scoped genuine receiver metadata.",
+    "Disable the comparison gate with skipDeploys after recording the completed run; do not repeat successful probes."
+  ],
+  "restrictions": {
+    "openaiOnly": true,
+    "claudeOnHold": true,
+    "astraProhibited": true,
+    "appStorePublicationHeld": true,
+    "commercialActivationHeld": true
+  },
+  "officialSources": [
+    "https://developers.openai.com/api/docs/models/gpt-6-luna",
+    "https://developers.openai.com/api/docs/models/gpt-5.6-terra"
+  ]
+}
