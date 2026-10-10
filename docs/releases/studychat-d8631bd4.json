@@ -1,0 +1,196 @@
+{
+  "checkedAt": "2026-10-10T00:33:55Z",
+  "baseUrl": "https://family-medicine-phone-test-private-test.up.railway.app",
+  "paidProviderCalls": 0,
+  "results": [
+    {
+      "path": "app.js",
+      "status": 200,
+      "sha256": "5b40257ddcf302d3d0571ec4d628bf3b555dd9be70d1fa0ba548c724c64d895c",
+      "matchesLocal": true,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "path": "conversation-agent-adapter.js",
+      "status": 200,
+      "sha256": "87cac7ab3fa266cf82e43d08505bad7e428d00eff318a42410ab3564d5be9959",
+      "matchesLocal": true,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "path": "premium-speech.js",
+      "status": 200,
+      "sha256": "7ee43499c8025fd6be28fa7e461f6ef4d61ad26a863b6e3d25046e7a22ce80e3",
+      "matchesLocal": true,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "sha256": "54a26002c78c473899a26091f50ebe1b527a5cd2cc1772926de5ebdd3a7a0c16",
+      "matchesLocal": true,
+      "contentType": "text/css; charset=utf-8"
+    },
+    {
+      "path": "index.html",
+      "status": 200,
+      "sha256": "2698fe760388d2aa6860cad1b5cc92fc8c98d0d024bd9878b84cc91736481776",
+      "matchesLocal": true,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "privacy.html",
+      "status": 200,
+      "sha256": "a723aaf425d21199b4e2dea479764d37e25bda72e25246f847afbfbc8eef1df3",
+      "matchesLocal": true,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "vendor/conversation-agent/index.js",
+      "status": 200,
+      "sha256": "d093356d7650042d4e6d87d8b5a6ecf4fea4702c8b3ec3fd12937b4bce52f0e7",
+      "matchesLocal": true,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "path": "vendor/conversation-agent/src/browser-audio.js",
+      "status": 200,
+      "sha256": "e421113c21ee7cc9ff123098107ca2edf8d2263b2f85a1e78ef122be83b0989b",
+      "matchesLocal": true,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "path": "vendor/conversation-agent/src/conversation-core.js",
+      "status": 200,
+      "sha256": "64eb23eef1da63da45e25bc69b1d45a57274aa0403a9c41efbcb46b1d69b3d00",
+      "matchesLocal": true,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "path": "vendor/conversation-agent/src/voice-circle.js",
+      "status": 200,
+      "sha256": "a6bb3f497dfc7cf07b9e469c83bc72bb3f1e210a7c1db91d3df83aa2849da0ac",
+      "matchesLocal": true,
+      "contentType": "text/javascript; charset=utf-8"
+    },
+    {
+      "path": "vendor/conversation-agent/voice-circle.css",
+      "status": 200,
+      "sha256": "84807dd65e0847577dbdf3bf0a4275640b36fd42983b21d4ce73e7abed608e52",
+      "matchesLocal": true,
+      "contentType": "text/css; charset=utf-8"
+    },
+    {
+      "path": "/api/conversation-agent/options",
+      "method": "GET",
+      "unauthenticatedStatus": 401,
+      "expected401": true
+    },
+    {
+      "path": "/api/conversation-agent/transcribe",
+      "method": "POST",
+      "unauthenticatedStatus": 401,
+      "expected401": true
+    }
+  ],
+  "repeatReason": "Initial broad asset verifier stopped on non-runtime NOTICE/type artifacts excluded by existing static MIME allowlist before preserving partial results. Only uncertain runtime results are checked here; status, manifest and sw reads are reused.",
+  "deployment": {
+    "id": "d8631bd4-3893-40a1-bbd9-5b4f4cbae87b",
+    "status": "SUCCESS",
+    "createdAt": "2026-10-10T00:28:46.926Z",
+    "branch": "feature/conversation-agent",
+    "configuredCommit": "1b894b9e1d72a224d35f211137739bab5b729692",
+    "resolvedCommit": "38dc4eac8d0b32239126986a7edd2d4c690b079e",
+    "commitMessage": "Record Conversation-Agent publication and pending private deployment handoff [skip ci]",
+    "stagedChangesRemaining": 0,
+    "volumeMountRetained": true
+  },
+  "initialPublicReads": [
+    {
+      "path": "/api/status",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "sha256": "ddad0eab205f0af07c33641213dba8c506dc151505e4ca960694617fe84b5565",
+      "data": {
+        "authenticated": false,
+        "authRequired": true,
+        "aiConfigured": true,
+        "provider": "OpenAI",
+        "providerId": "openai",
+        "model": "gpt-4.1-mini",
+        "modelWarning": null,
+        "modelSelectionEnabled": true,
+        "voiceEnabled": false,
+        "voiceModel": null,
+        "sourcedVoiceEnabled": true,
+        "voiceMode": "validated-openai-speech",
+        "premiumSpeechEnabled": true,
+        "conversationAgentEnabled": true,
+        "prohibitedModels": [
+          "Astra"
+        ],
+        "curriculum": {
+          "conditions": 105,
+          "questions": 210,
+          "currentConditions": 105,
+          "formalGuidelineConditions": 100
+        },
+        "boardPractice": {
+          "questions": 222,
+          "availableMixedSizes": [
+            10,
+            20,
+            40,
+            80,
+            100
+          ]
+        }
+      }
+    },
+    {
+      "path": "/vendor/conversation-agent/release.json",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "sha256": "bea90b375d4eeaaec394d32f7cf58cbb6fa5f4f54ad7aba010687b7a131f1bfc",
+      "data": {
+        "repository": "https://github.com/aibotjock/Conversation-Agent",
+        "version": "0.1.0",
+        "sourceRevision": "51ae2d282809288e2e3e9a9e973f877e9b22e84f",
+        "files": {
+          "NOTICE": "30e9aac9578adf3498b3710e92bac815cc0e14fc1f47b77a3518c8410c0e46e2",
+          "index.d.ts": "3a3c04814dda29d38fe07e8eca5610d55f9249dad964b225758594d2642191a0",
+          "index.js": "d093356d7650042d4e6d87d8b5a6ecf4fea4702c8b3ec3fd12937b4bce52f0e7",
+          "src/browser-audio.js": "e421113c21ee7cc9ff123098107ca2edf8d2263b2f85a1e78ef122be83b0989b",
+          "src/conversation-core.js": "64eb23eef1da63da45e25bc69b1d45a57274aa0403a9c41efbcb46b1d69b3d00",
+          "src/voice-circle.js": "a6bb3f497dfc7cf07b9e469c83bc72bb3f1e210a7c1db91d3df83aa2849da0ac",
+          "voice-circle.css": "84807dd65e0847577dbdf3bf0a4275640b36fd42983b21d4ce73e7abed608e52"
+        },
+        "serverFiles": {
+          "server/openai-transcription.js": "2901b3174a5a2e1e2e3cf4a8a36ee7483f5b03e2d80230c8b0c026186514e770"
+        }
+      },
+      "matchesLocal": true
+    },
+    {
+      "path": "/sw.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "sha256": "6897e089c418261e89f8324ecdd43336bf0e0d7329e147722bc3b293bc6f0300",
+      "version": "const VERSION = 'fm-coach-shell-v11';",
+      "matchesLocal": true
+    }
+  ],
+  "limitations": {
+    "paidInferenceOrSpeechCheck": false,
+    "browserScenarios": {
+      "executed": 0,
+      "total": 9,
+      "reason": "Chromium unavailable; invalid installer artifacts in prior build"
+    },
+    "physicalPhoneAudibility": false,
+    "echoRejection": false,
+    "Bluetooth": false,
+    "latencyTargetsMeasured": false,
+    "clinicalAccuracyValidated": false
+  }
+}
