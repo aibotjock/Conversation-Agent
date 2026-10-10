@@ -4,7 +4,7 @@ export const CONVERSATION_TRANSCRIPTION_MODEL = 'gpt-4o-mini-transcribe';
 export const CONVERSATION_AUDIO_LIMITS = Object.freeze({
   sessionMs: 600000, maxUtteranceMs: 60000, minUtteranceMs: 120,
   maxAudioBytes: 5760044, maxJsonBytes: 7680500, maxSessionRequests: 60,
-  maxSessionsPerHour: 6, timeoutMs: 30000, cacheMs: 60000,
+  maxSessionsPerHour: 60, maxHourlyRequests: 360, maxHourlyAudioMs: 3600000, timeoutMs: 30000, cacheMs: 60000,
   maxLedgerEntries: 10000, maxProviderBytes: 65536,
 });
 const ENDPOINT = 'https://api.openai.com/v1/audio/transcriptions';
@@ -155,6 +155,9 @@ export function createConversationAudioService({ env = process.env, fetchImpl = 
     }
     if (prior) fail(409, 'The earlier transcription has an uncertain outcome. No automatic retry was made.', 'conversation_audio_request_uncertain');
     if (active.size) fail(409, 'Another voice turn is being transcribed.', 'conversation_audio_busy');
+    // Durable paid-usage limits survive session restarts and process restarts.
+    const hourly = db.prepare("SELECT COUNT(*) AS requests, COALESCE(SUM(json_extract(metadata, '$.durationMs')), 0) AS audioMs FROM conversation_audio_requests WHERE created_at > ?").get(now() - 3600000);
+    if (hourly.requests >= CONVERSATION_AUDIO_LIMITS.maxHourlyRequests || hourly.audioMs + durationMs > CONVERSATION_AUDIO_LIMITS.maxHourlyAudioMs) fail(429, 'The hourly transcription usage limit has been reached. Try again when earlier usage expires.', 'conversation_audio_hourly_usage_limit');
     if (session.requests >= CONVERSATION_AUDIO_LIMITS.maxSessionRequests || session.audioMs + durationMs > CONVERSATION_AUDIO_LIMITS.sessionMs) fail(429, 'The voice-session usage limit has been reached.', 'conversation_audio_usage_limit');
     if (db.prepare('SELECT COUNT(*) AS count FROM conversation_audio_requests').get().count >= CONVERSATION_AUDIO_LIMITS.maxLedgerEntries) fail(429, 'The transcription request history is full.', 'conversation_audio_ledger_limit');
     const controller = new AbortController(), startedAt = now(), timer = setTimer(() => controller.abort(), CONVERSATION_AUDIO_LIMITS.timeoutMs);
