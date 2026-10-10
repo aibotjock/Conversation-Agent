@@ -66,3 +66,9 @@ For new changes, run only new or affected groups with `node --test --test-name-p
 All rights reserved pending the owner's license selection. Public GitHub visibility does not itself grant an open-source license. Use original design assets and preserve dependency notices. Do not use OpenAI/ChatGPT marks as product branding or claim affiliation. Authorized AI voices remain subject to provider terms and must be disclosed as AI-generated.
 
 Implementation and local evidence are recorded. Android physical acceptance and measured response timing remain outstanding. No perfect accuracy or universal compatibility claim is made.
+
+## Lean module use
+
+Hosts that need only typed conversation or supply their own audio/UI adapters can import `createConversationAgent` from `@aibotjock/conversation-agent/core`. This entry loads only the coordinator; it does not import microphone capture or DOM presentation modules. Existing root, browser-audio, voice-circle and server exports remain compatible.
+
+The voice-circle renderer now leaves unchanged captions and accessibility attributes untouched during timer-only updates. One focused regression test observed zero text/attribute writes for those ticks and one write for a changed caption. The eight existing circle/demo tests also pass. This is reduced browser work, not a measured provider, transcription, playback or physical-phone latency improvement. Public adapter hooks and the optional echo-reference interface remain because they are supported, tested capabilities, even where StudyChat does not currently use them. No runtime dependency was added.
