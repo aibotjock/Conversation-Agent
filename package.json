@@ -7,12 +7,29 @@
   "private": true,
   "types": "./index.d.ts",
   "exports": {
-    ".": { "types": "./index.d.ts", "import": "./index.js", "default": "./index.js" },
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    },
     "./browser-audio": "./src/browser-audio.js",
     "./voice-circle": "./src/voice-circle.js",
-    "./server": "./server/openai-transcription.js"
+    "./server": "./server/openai-transcription.js",
+    "./core": "./src/conversation-core.js"
   },
-  "files": ["index.js", "index.d.ts", "src", "server", "voice-circle.css", "README.md", "NOTICE"],
-  "engines": { "node": ">=24" },
-  "scripts": { "test": "node --test tests/*.test.js" }
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "src",
+    "server",
+    "voice-circle.css",
+    "README.md",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  }
 }
