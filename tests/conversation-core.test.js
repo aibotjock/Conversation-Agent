@@ -76,10 +76,46 @@ test('explicit cancellation uses the active transcription ID then the chat turn 
 test('blocked audio resumes the prepared recording without another host request and ends once', async () => {
   const f = fixture(); await f.agent.start({ conversationId: 'conversation' }); await f.agent.sendText('Hello');
   const callbacks = f.plays[0]; callbacks.onBlocked('Tap Play audio'); assert.equal(f.agent.state().audioBlocked, true);
+  assert.equal(f.agent.state().audioBlockReason, null, 'Legacy adapters do not establish a permission failure.');
   await f.agent.playAudio(); assert.equal(f.playback.resumes, 1); assert.equal(f.sends.length, 1);
+  assert.equal(f.agent.state().audioBlockReason, null);
   callbacks.onChunkEnd({ completedChunks: 2 }); callbacks.onEnd(); callbacks.onEnd(); callbacks.onStart(); await flush();
   assert.equal(f.reports.filter(value => value.status === 'completed').length, 1);
   assert.equal(f.reports[0].completedChunks, 2); assert.equal(f.agent.state().outputState, 'idle'); f.agent.destroy();
+});
+
+test('playback block reasons are bounded and cleared on resume, replacement, interruption and session stop', async () => {
+  const f = fixture(); await f.agent.start({ conversationId: 'conversation' }); await f.agent.sendText('First');
+  const first = f.plays[0];
+  for (const reason of ['permission', 'stalled', 'paused']) {
+    first.onBlocked('Prepared recording needs attention.', { reason });
+    assert.equal(f.agent.state().audioBlockReason, reason); assert.equal(f.agent.state().outputState, 'blocked');
+    assert.equal(f.input.output, false);
+    await f.agent.playAudio();
+    assert.equal(f.agent.state().audioBlockReason, null); assert.equal(f.agent.state().audioBlocked, false);
+    assert.equal(f.agent.state().outputState, 'playing');
+  }
+  first.onBlocked('Unknown recovery cause.', { reason: 'untrusted-value' });
+  assert.equal(f.agent.state().audioBlockReason, null);
+  first.onBlocked('Stalled.', { reason: 'stalled' }); await f.agent.sendText('Replacement');
+  assert.equal(f.agent.state().audioBlockReason, null); assert.equal(f.agent.state().audioBlocked, false);
+  first.onBlocked('Stale permission callback.', { reason: 'permission' });
+  assert.equal(f.agent.state().audioBlockReason, null); assert.equal(f.agent.state().outputState, 'playing');
+  f.plays[1].onBlocked('Paused.', { reason: 'paused' }); f.agent.interrupt();
+  assert.equal(f.agent.state().audioBlockReason, null); assert.equal(f.agent.state().audioBlocked, false);
+  await f.agent.sendText('Last'); f.plays[2].onBlocked('Permission.', { reason: 'permission' }); await f.agent.stop();
+  assert.equal(f.agent.state().audioBlockReason, null); assert.equal(f.agent.state().audioBlocked, false);
+  await f.agent.start({ conversationId: 'conversation' }); assert.equal(f.agent.state().audioBlockReason, null);
+  assert.equal(f.sends.length, 3, 'Recovery never creates a new host request.'); f.agent.destroy();
+});
+
+test('a failed replacement clears obsolete blocked-audio recovery rather than exposing a stale recording', async () => {
+  const f = fixture(); await f.agent.start({ conversationId: 'conversation' }); await f.agent.sendText('First');
+  f.plays[0].onBlocked('Audio stalled.', { reason: 'stalled' });
+  await f.agent.sendText('');
+  assert.equal(f.agent.state().outputState, 'idle'); assert.equal(f.agent.state().audioBlocked, false);
+  assert.equal(f.agent.state().audioBlockReason, null); assert.equal(f.sends.length, 1);
+  await f.agent.playAudio(); assert.equal(f.playback.resumes, 0); f.agent.destroy();
 });
 
 test('microphone failure retains typed conversation without automatically reacquiring permission', async () => {

@@ -12,7 +12,7 @@ export function createConversationAgent({ input = null, host, playback = null, o
   let destroyed = false, sessionEpoch = 0, turnEpoch = 0, work = null, sessionController = null;
   let sessionReady = Promise.resolve(), playbackCheckpointReady = Promise.resolve(), durationTimer = null, waitTimer = null;
   const seenUtterances = new Set();
-  let snapshot = { phase: 'idle', active: false, muted: false, audioBlocked: false,
+  let snapshot = { phase: 'idle', active: false, muted: false, audioBlocked: false, audioBlockReason: null,
     userCaption: '', assistantCaption: '', message: 'Start a conversation or type a message.', warning: '',
     setupPending: false, replyWaitMs: 0, inputState: 'off', outputState: 'idle',
     sessionEpoch: 0, turnEpoch: 0, conversationId: null, sessionId: null };
@@ -86,14 +86,14 @@ export function createConversationAgent({ input = null, host, playback = null, o
     clearTimer(durationTimer); durationTimer = null;
     cancelWork({ clearCache: true }); input?.stop?.(); seenUtterances.clear();
     update({ active: false, muted: false, inputState: 'off', outputState: failed ? 'error' : 'idle',
-      audioBlocked: false, setupPending: false, replyWaitMs: 0, message, sessionId: null });
+      audioBlocked: false, audioBlockReason: null, setupPending: false, replyWaitMs: 0, message, sessionId: null });
     if (ended.sessionId) quietCall(host.endSession, ended);
     return Promise.resolve();
   }
   function interrupt() {
     if (!snapshot.active || destroyed) return;
     cancelWork();
-    update({ outputState: 'idle', audioBlocked: false, replyWaitMs: 0,
+    update({ outputState: 'idle', audioBlocked: false, audioBlockReason: null, replyWaitMs: 0,
       message: snapshot.muted ? 'Microphone muted. Type your next message.' : 'Listening for your next message.', warning: '' });
   }
   function beginWork() {
@@ -108,7 +108,7 @@ export function createConversationAgent({ input = null, host, playback = null, o
     item.terminal = true;
     checkpoint(item, error ? 'interrupted' : 'completed');
     work = null; clearTimer(waitTimer); waitTimer = null; outputActive(false);
-    update({ outputState: 'idle', audioBlocked: false, setupPending: false,
+    update({ outputState: 'idle', audioBlocked: false, audioBlockReason: null, setupPending: false,
       message: error ? 'Audio stopped. Your reply remains visible; use typing or try audio manually.' : snapshot.muted ? 'Microphone muted. Type or unmute to continue.' : 'Listening for your next message.',
       warning: error ? String(error?.message || 'Audio could not be played.').slice(0, 300) : snapshot.warning });
   }
@@ -120,7 +120,7 @@ export function createConversationAgent({ input = null, host, playback = null, o
     const checkpointSaved = await waitForCheckpoint();
     if (!current(item)) return;
     const startedAt = now();
-    update({ userCaption: cleaned, outputState: 'generating', message: 'Preparing your reply.', warning: checkpointSaved ? '' : 'Playback progress was not saved. Your earlier reply remains visible.', replyWaitMs: 0 });
+    update({ userCaption: cleaned, outputState: 'generating', audioBlocked: false, audioBlockReason: null, message: 'Preparing your reply.', warning: checkpointSaved ? '' : 'Playback progress was not saved. Your earlier reply remains visible.', replyWaitMs: 0 });
     function tick() {
       if (!current(item) || snapshot.outputState !== 'generating') return;
       update({ replyWaitMs: Math.max(0, now() - startedAt) }); waitTimer = setTimer(tick, 1000);
@@ -142,7 +142,7 @@ export function createConversationAgent({ input = null, host, playback = null, o
       return reply;
     }
     if (typeof reply.messageId !== 'string' || !reply.messageId) throw new Error('Audio requires a saved host message identity.');
-    update({ outputState: 'preparing', message: 'Preparing audio.', audioBlocked: false });
+    update({ outputState: 'preparing', message: 'Preparing audio.', audioBlocked: false, audioBlockReason: null });
     await playback.play({ conversationId: snapshot.conversationId, messageId: reply.messageId,
       content: caption, signal: item.controller.signal,
       onPreparing(detail = {}) {
@@ -151,9 +151,9 @@ export function createConversationAgent({ input = null, host, playback = null, o
         item.currentChunk = index;
         // Next-part preparation is emitted only after the previous part ended.
         item.completedChunks = Math.max(item.completedChunks, index);
-        outputActive(false); update({ outputState: 'preparing', message: index ? 'Preparing the next audio part.' : 'Preparing audio.' });
+        outputActive(false); update({ outputState: 'preparing', audioBlocked: false, audioBlockReason: null, message: index ? 'Preparing the next audio part.' : 'Preparing audio.' });
       },
-      onStart() { if (current(item) && !item.terminal) { outputActive(true); update({ outputState: 'playing', audioBlocked: false, message: 'Speaking. You can interrupt with your voice or the Interrupt button.' }); } },
+      onStart() { if (current(item) && !item.terminal) { outputActive(true); update({ outputState: 'playing', audioBlocked: false, audioBlockReason: null, message: 'Speaking. You can interrupt with your voice or the Interrupt button.' }); } },
       onWaiting() { if (current(item) && !item.terminal) update({ outputState: 'preparing', message: 'Audio is buffering.' }); },
       onProgress(detail = {}) {
         if (!current(item) || item.terminal) return;
@@ -165,7 +165,13 @@ export function createConversationAgent({ input = null, host, playback = null, o
         if (Number.isInteger(detail.completedChunks) && detail.completedChunks >= 0 && detail.completedChunks <= 100) item.completedChunks = Math.max(item.completedChunks, detail.completedChunks);
         outputActive(false);
       },
-      onBlocked(message) { if (current(item) && !item.terminal) { outputActive(false); update({ outputState: 'blocked', audioBlocked: true, message: message || 'Tap Play audio to continue the prepared recording.' }); } },
+      onBlocked(message, detail = {}) {
+        if (current(item) && !item.terminal) {
+          const audioBlockReason = ['permission', 'stalled', 'paused'].includes(detail?.reason) ? detail.reason : null;
+          outputActive(false); update({ outputState: 'blocked', audioBlocked: true, audioBlockReason,
+            message: message || 'Tap Play prepared audio to continue the recording.' });
+        }
+      },
       onEnd() { terminal(item); }, onError(error) { terminal(item, error); },
     });
     return reply;
@@ -176,7 +182,7 @@ export function createConversationAgent({ input = null, host, playback = null, o
     if (typeof id !== 'string' || !id || seenUtterances.has(id)) return;
     seenUtterances.add(id); if (seenUtterances.size > 100) seenUtterances.delete(seenUtterances.values().next().value);
     const item = beginWork(); item.requestId = id;
-    update({ outputState: 'transcribing', inputState: 'monitoring', userCaption: '', message: 'Transcribing your message.' });
+    update({ outputState: 'transcribing', audioBlocked: false, audioBlockReason: null, inputState: 'monitoring', userCaption: '', message: 'Transcribing your message.' });
     try {
       await sessionReady;
       if (!current(item)) return;
@@ -187,7 +193,7 @@ export function createConversationAgent({ input = null, host, playback = null, o
       await turn(typeof result === 'string' ? result : result?.text, item);
     } catch (error) {
       if (!current(item)) return;
-      cancelWork(); update({ outputState: 'idle', message: 'The message was not completed. Type or speak again when ready.', warning: String(error?.message || 'The request failed.').slice(0, 300) });
+      cancelWork(); update({ outputState: 'idle', audioBlocked: false, audioBlockReason: null, message: 'The message was not completed. Type or speak again when ready.', warning: String(error?.message || 'The request failed.').slice(0, 300) });
     }
   }
   async function start({ conversationId = snapshot.conversationId } = {}) {
@@ -196,7 +202,7 @@ export function createConversationAgent({ input = null, host, playback = null, o
     if (documentImpl?.hidden) throw new Error('Keep the app visible to use its microphone.');
     sessionEpoch++; const epoch = sessionEpoch; const controller = new AbortController(); sessionController = controller; playbackCheckpointReady = Promise.resolve();
     update({ active: true, muted: false, conversationId, sessionId: null, inputState: input ? 'starting' : 'unavailable', outputState: 'idle',
-      setupPending: Boolean(input), audioBlocked: false, userCaption: '', assistantCaption: '', warning: '', message: 'Starting your conversation.' });
+      setupPending: Boolean(input), audioBlocked: false, audioBlockReason: null, userCaption: '', assistantCaption: '', warning: '', message: 'Starting your conversation.' });
     // Invoke input synchronously from the user gesture so AudioContext can resume.
     let inputReady;
     try {
@@ -243,7 +249,7 @@ export function createConversationAgent({ input = null, host, playback = null, o
     const item = beginWork();
     try { return await turn(text, item); }
     catch (error) {
-      if (current(item)) { cancelWork(); update({ outputState: 'idle', warning: String(error?.message || 'The request failed.').slice(0, 300), message: 'Your message was not completed. No automatic retry was made.' }); }
+      if (current(item)) { cancelWork(); update({ outputState: 'idle', audioBlocked: false, audioBlockReason: null, warning: String(error?.message || 'The request failed.').slice(0, 300), message: 'Your message was not completed. No automatic retry was made.' }); }
       return null;
     }
   }
@@ -255,7 +261,7 @@ export function createConversationAgent({ input = null, host, playback = null, o
   async function playAudio() {
     if (!snapshot.active || !snapshot.audioBlocked || !work || destroyed) return;
     const item = work;
-    update({ audioBlocked: false, outputState: 'preparing', message: 'Resuming the prepared recording.' });
+    update({ audioBlocked: false, audioBlockReason: null, outputState: 'preparing', message: 'Resuming the prepared recording.' });
     try { await playback?.resume?.(); } catch (error) { terminal(item, error); }
   }
   const onHidden = () => { if (documentImpl?.hidden && snapshot.active) void stop('Conversation stopped in the background. Your microphone is off.'); };

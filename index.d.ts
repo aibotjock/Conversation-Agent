@@ -1,5 +1,7 @@
 export interface ConversationState {
   phase: string; active: boolean; muted: boolean; audioBlocked: boolean;
+  /** Playback recovery reason; null when unknown or audio is not blocked. */
+  audioBlockReason: 'permission' | 'stalled' | 'paused' | null;
   userCaption: string; assistantCaption: string; message: string; warning: string;
   setupPending: boolean; replyWaitMs: number; inputState: string; outputState: string;
   sessionEpoch: number; turnEpoch: number; conversationId: string | null; sessionId: string | null;
@@ -45,7 +47,7 @@ export interface ConversationPlayback {
   play(request: { conversationId: string | null; messageId: string; content: string; signal: AbortSignal;
     onPreparing?(detail: { chunkIndex?: number; chunkCount?: number }): void; onStart?(): void;
     onWaiting?(): void; onProgress?(detail: PlaybackProgress): void; onChunkEnd?(detail: PlaybackProgress): void;
-    onBlocked?(message: string): void; onEnd?(): void; onError?(error: Error): void;
+    onBlocked?(message: string, detail?: { reason?: 'permission' | 'stalled' | 'paused' }): void; onEnd?(): void; onError?(error: Error): void;
   }): Promise<unknown> | void;
   stop(options?: { clearCache?: boolean }): void; resume?(): Promise<unknown> | void;
   state?(): PlaybackProgress; getOutputState?(): PlaybackProgress; destroy?(): void;

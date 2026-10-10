@@ -34,3 +34,10 @@ These counts are supplied by their implementation owners. They do not represent 
 - Whole-reply medical grounding and current-source authorization stay in StudyChat. Automated review is not clinician approval or an accuracy guarantee.
 
 No Astra, Claude activation, store submission, or paid provider call is part of these package checks. Repeat a passing check only when a relevant change or failure supplies a reason; record that reason and limit the scope.
+
+
+## Version 0.1.1 — audio recovery classification (October 10, 2026)
+
+A new phone report exposed a StudyChat MP3 playback stall. The host player owns media transport; this package now accepts optional `onBlocked(message, {reason})` metadata and keeps bounded `audioBlockReason` values (`permission`, `stalled`, `paused`, or null). Unknown legacy blocks no longer assert a permission failure. Recovery is available before captions as **Play prepared audio** when the host supplies `playAudio`. Obsolete recovery state is cleared on start, resume, playback, replacement, failure, interruption and shutdown. No source approval or business logic moved into this package.
+
+Seven unique focused groups passed: three new regressions and four affected checks. The first command matched six groups: `node --test --test-name-pattern='blocked audio resumes|playback block reasons|circle preserves separate|circle distinguishes stalled|circle works with strict style|local mock demo completes' tests/conversation-core.test.js tests/voice-circle.test.js`. The second ran only the new failure path: `node --test --test-name-pattern='a failed replacement clears' tests/conversation-core.test.js`. These checks use injected state/DOM mocks; they are not physical-browser or phone results. The retest reason is changed recovery state and button semantics. Capture, server helpers and unchanged checks were not rerun. Paid calls: zero. `git diff --check` passed. StudyChat must sync this published revision and provide the existing circle's `playAudio` action; phone audibility, autoplay, echo rejection and Bluetooth remain unverified.

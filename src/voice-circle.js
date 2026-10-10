@@ -98,7 +98,7 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
   };
   const interrupt = optionalButton('interrupt', 'Interrupt reply');
   const mute = optionalButton('toggleMute', 'Mute microphone');
-  const replay = optionalButton('playAudio', 'Play reply');
+  const replay = optionalButton('playAudio', 'Play prepared audio');
   let textarea;
   let send;
   if (showComposer && typeof agent.sendText === 'function') {
@@ -144,8 +144,10 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
     current = state && typeof state === 'object' ? state : {};
     const isActive = active();
     const phase = typeof current.phase === 'string' ? current.phase : 'idle';
+    const blockedLabel = current.audioBlockReason === 'permission' ? 'Audio needs permission'
+      : current.audioBlockReason === 'stalled' ? 'Audio stalled' : 'Audio paused';
     const phaseLabel = phase === 'paused'
-      ? current.audioBlocked ? 'Audio paused' : current.muted ? 'Microphone muted' : current.inputState === 'unavailable' ? 'Microphone unavailable' : 'Conversation paused'
+      ? current.audioBlocked ? blockedLabel : current.muted ? 'Microphone muted' : current.inputState === 'unavailable' ? 'Microphone unavailable' : 'Conversation paused'
       : PHASE_LABELS[phase] || readable(phase, 'Ready to begin');
     orbTitle.textContent = isActive ? 'Stop conversation' : 'Start conversation';
     orbHint.textContent = phaseLabel;
@@ -156,7 +158,7 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
       ? current.muted ? 'Microphone muted' : 'Microphone off'
       : current.muted ? 'Microphone muted'
       : ({ starting: 'Microphone starting', capturing: 'Listening to your message', monitoring: 'Microphone on', listening: 'Microphone on', unavailable: 'Microphone unavailable', muted: 'Microphone muted' })[current.inputState] || 'Microphone status unavailable';
-    const outputLabel = ({ idle: 'Ready', generating: 'Preparing reply', transcribing: 'Transcribing', preparing: 'Preparing audio', playing: 'Reply playing', blocked: 'Audio needs permission', error: 'Reply needs attention', checking: 'Checking reply' })[current.outputState] || 'Reply status unavailable';
+    const outputLabel = ({ idle: 'Ready', generating: 'Preparing reply', transcribing: 'Transcribing', preparing: 'Preparing audio', playing: 'Reply playing', blocked: blockedLabel, error: 'Reply needs attention', checking: 'Checking reply' })[current.outputState] || 'Reply status unavailable';
     channels.textContent = `${microphoneLabel} · ${outputLabel}`;
     userCaption.textContent = typeof current.userCaption === 'string' && current.userCaption ? current.userCaption : 'Your words will appear here.';
     assistantCaption.textContent = typeof current.assistantCaption === 'string' && current.assistantCaption ? current.assistantCaption : 'The reply will appear here.';
@@ -171,7 +173,7 @@ export function mountVoiceCircle({ container, agent, documentImpl = globalThis.d
       mute.disabled = !isActive;
     }
     if (replay) {
-      replay.textContent = current.audioBlocked ? 'Play reply (audio blocked)' : 'Play reply';
+      replay.textContent = 'Play prepared audio';
       replay.hidden = !current.audioBlocked;
       replay.disabled = !isActive;
     }

@@ -96,13 +96,29 @@ test('circle preserves separate honest channels, safe captions, and optional act
   assert.equal(mute.getAttribute('aria-pressed'), 'true');
   mute.dispatch('click');
   byText(container, 'Interrupt reply').dispatch('click');
-  const play = byText(container, 'Play reply (audio blocked)');
+  const play = byText(container, 'Play prepared audio');
   assert.equal(play.hidden, false);
   play.dispatch('click');
   assert.deepEqual(calls, [['mute'], ['interrupt'], ['play']]);
   view.update({ phase: 'listening', active: true, audioBlocked: false });
   assert.equal(play.hidden, true);
   assert.equal(nodes.find(node => node.getAttribute('role') === 'alert').hidden, true);
+});
+
+test('circle distinguishes stalled and permission-blocked audio with recovery before captions', () => {
+  const { container, calls, view } = setup({ interrupt: undefined, toggleMute: undefined, sendText: undefined }, { showComposer: false });
+  const nodes = descendants(container), replay = byText(container, 'Play prepared audio');
+  assert.equal(replay.hidden, true);
+  assert.ok(nodes.indexOf(replay) < nodes.findIndex(node => node.className === 'voice-captions'), 'Recovery stays beside the circle, before long captions.');
+  for (const [reason, label] of [['stalled', 'Audio stalled'], ['permission', 'Audio needs permission'], ['paused', 'Audio paused'], [null, 'Audio paused']]) {
+    view.update({ phase: 'paused', active: true, inputState: 'monitoring', outputState: 'blocked', audioBlocked: true, audioBlockReason: reason });
+    assert.equal(nodes.some(node => node.getAttribute('role') === 'status' && node.textContent === label), true);
+    assert.equal(nodes.some(node => node.textContent === `Microphone on · ${label}`), true);
+    assert.equal(replay.hidden, false); assert.equal(replay.disabled, false);
+  }
+  replay.dispatch('click'); assert.deepEqual(calls, [['play']]);
+  view.update({ phase: 'speaking', active: true, inputState: 'monitoring', outputState: 'playing', audioBlocked: false, audioBlockReason: null });
+  assert.equal(replay.hidden, true);
 });
 
 test('typed fallback submits once, retains a failed draft, and handles action errors', async () => {
@@ -227,7 +243,7 @@ test('local mock demo completes start, synthetic turn, manual play, interruption
     assert.equal(state().playback, 'blocked');
     assert.equal(circle.textContent.includes('[Synthetic spoken turn:'), true);
     assert.equal(circle.textContent.includes('mock conversation with fixed replies'), true);
-    byText(circle, 'Play reply (audio blocked)').dispatch('click');
+    byText(circle, 'Play prepared audio').dispatch('click');
     assert.equal(state().playback, 'playing');
     assert.equal(controls.get('demo-notice').textContent.includes('no sound is playing'), true);
     controls.get('mock-interrupt').dispatch('click');
