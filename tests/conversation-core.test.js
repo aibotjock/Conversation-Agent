@@ -177,3 +177,29 @@ test('browser offline stops microphone and pending audio without automatically r
   assert.equal(f.agent.active(), false); assert.equal(f.plays.length, 1); assert.equal(f.sends.length, 1);
   f.agent.destroy(); assert.equal(f.handlers.has('offline'), false);
 });
+
+test('on-device text utterances skip the transcription service and show live captions', async () => {
+  const f = fixture(); const outputTexts = [];
+  f.input.setOutputText = value => outputTexts.push(value);
+  await f.agent.start({ conversationId: 'conversation' });
+  f.input.callbacks.onSpeechStart(); f.input.callbacks.onPartial('What is');
+  assert.equal(f.agent.state().userCaption, 'What is');
+  f.input.callbacks.onUtterance({ utteranceId: 'local-1', text: 'What is ATP', durationMs: 900, mimeType: 'text/plain', audio: null }); await flush();
+  assert.equal(f.transcriptions.length, 0); assert.equal(f.sends.length, 1); assert.equal(f.sends[0].text, 'What is ATP');
+  assert.equal(f.agent.state().userCaption, 'What is ATP');
+  assert.deepEqual(outputTexts, ['A reply to What is ATP']);
+  f.input.callbacks.onUtterance({ utteranceId: 'local-1', text: 'What is ATP' }); await flush();
+  assert.equal(f.sends.length, 1, 'duplicate IDs are still suppressed');
+  f.agent.toggleMute(); f.input.callbacks.onPartial('ignored while muted');
+  assert.equal(f.agent.state().userCaption, 'What is ATP'); f.agent.destroy();
+});
+
+test('an empty on-device utterance or a failed reply recovers without a retry', async () => {
+  const f = fixture({ host: { sendTurn: async () => { throw new Error('Server busy'); } } });
+  await f.agent.start({ conversationId: 'conversation' });
+  f.input.callbacks.onUtterance({ utteranceId: 'a', text: '   ' }); await flush();
+  assert.match(f.agent.state().warning, /1 to 12000/); assert.equal(f.agent.state().outputState, 'idle');
+  f.input.callbacks.onUtterance({ utteranceId: 'b', text: 'Hello' }); await flush();
+  assert.match(f.agent.state().warning, /Server busy/); assert.equal(f.agent.state().phase, 'listening');
+  f.agent.destroy();
+});

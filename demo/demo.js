@@ -1,4 +1,4 @@
-import { createConversationAgent, createBrowserAudioInput, mountVoiceCircle } from '../index.js';
+import { createConversationAgent, createBrowserAudioInput, createSherpaAudioInput, createPhoneVoicePlayback, mountVoiceCircle, mountVoiceSettings } from '../index.js';
 
 const byId = id => document.getElementById(id);
 const notice = byId('demo-notice');
@@ -51,12 +51,18 @@ function createSyntheticInput() {
 
 const syntheticInput = createSyntheticInput();
 let realInput = null;
+// On-device listening; models come from `npm run fetch:sherpa -- demo/sherpa`.
+const sherpaInput = createSherpaAudioInput({ assetBaseUrl: new URL('./sherpa/', import.meta.url),
+  onLoadProgress: ({ phase, loadedBytes, totalBytes }) => {
+    if (phase === 'loading') notice.textContent = `Loading on-device speech models… ${(loadedBytes / 1048576).toFixed(1)}${totalBytes ? ` of ${(totalBytes / 1048576).toFixed(1)}` : ''} MB (first time only)`;
+  } });
 let currentInput = null;
 let inputMode = 'mock';
 const input = {
   start(callbacks) {
     inputMode = selectedMode();
-    if (inputMode === 'microphone') {
+    if (inputMode === 'sherpa') currentInput = sherpaInput;
+    else if (inputMode === 'microphone') {
       realInput ||= createBrowserAudioInput();
       currentInput = realInput;
       callbacks.onWarning?.('Mock transcription cannot recognize spoken words. Audio stays in this page.');
@@ -66,7 +72,8 @@ const input = {
   stop() { currentInput?.stop(); currentInput = null; },
   setMuted(value) { currentInput?.setMuted?.(value); },
   setOutputActive(value) { currentInput?.setOutputActive?.(value); },
-  destroy() { syntheticInput.stop(); realInput?.destroy?.(); },
+  setOutputText(value) { currentInput?.setOutputText?.(value); },
+  destroy() { syntheticInput.stop(); realInput?.destroy?.(); sherpaInput.destroy(); },
 };
 
 function createMockPlayback() {
@@ -102,25 +109,8 @@ function createMockPlayback() {
   function launch(item) {
     if (!valid(item) || item.started) return;
     item.started = true;
-    const localVoice = speechOption.checked && globalThis.speechSynthesis?.getVoices().find(voice => voice.localService === true);
-    if (localVoice && typeof globalThis.SpeechSynthesisUtterance === 'function') {
-      mode = 'browser-speech';
-      detail = 'Fixed demo text is playing with a browser-reported local voice. This is not the production speech provider.';
-      const utterance = new SpeechSynthesisUtterance(item.content);
-      item.utterance = utterance;
-      utterance.voice = localVoice;
-      utterance.onstart = () => { if (valid(item)) item.onStart?.(); };
-      utterance.onend = () => finish(item);
-      utterance.onerror = () => finish(item, new Error('The local browser voice could not play. Disable browser speech to use the silent demo.'));
-      item.timer = setTimeout(() => finish(item, new Error('The local browser voice did not finish. Use the silent demo instead.')), 30000);
-      try { globalThis.speechSynthesis.speak(utterance); }
-      catch { finish(item, new Error('Browser speech is unavailable. Disable it to use the silent demo.')); }
-      return;
-    }
     mode = 'silent';
-    detail = speechOption.checked
-      ? 'No browser-reported local voice is available. Silent playback is being simulated; no sound is playing.'
-      : 'Silent playback simulation. The reply is visible; no sound is playing.';
+    detail = 'Silent playback simulation. The reply is visible; no sound is playing.';
     item.onStart?.();
     item.timer = setTimeout(() => finish(item), 4500);
   }
@@ -146,7 +136,20 @@ function createMockPlayback() {
   };
 }
 
-const playback = createMockPlayback();
+const mockPlayback = createMockPlayback();
+const phoneVoice = createPhoneVoicePlayback();
+const usePhoneVoice = () => speechOption.checked && !manualPlayOption.checked;
+let activePlayback = mockPlayback;
+// Phone voices speak each reply sentence by sentence; the silent mock stays the default.
+const playback = {
+  get mode() { return activePlayback === phoneVoice ? 'phone-voice' : mockPlayback.mode; },
+  get detail() { return activePlayback === phoneVoice ? 'Speaking the fixed demo reply with the selected phone voice.' : mockPlayback.detail; },
+  play(options) { activePlayback.stop(); activePlayback = usePhoneVoice() ? phoneVoice : mockPlayback; return activePlayback.play(options); },
+  resume() { return activePlayback.resume?.(); },
+  stop(options) { mockPlayback.stop(options); phoneVoice.stop(options); },
+  state() { return activePlayback.state?.() || {}; },
+  destroy() { mockPlayback.destroy(); phoneVoice.destroy(); },
+};
 let replyNumber = 0;
 const replies = [
   'Hello. This is a mock conversation with fixed replies. Tell me what you would like the interface to do next.',
@@ -181,6 +184,7 @@ function renderState(state) {
   mockInterruptButton.disabled = !state.active || state.muted || inputMode !== 'mock';
   notice.textContent = state.outputState === 'playing' ? playback.detail
     : state.outputState === 'blocked' ? 'Playback is paused by the demo setting. Use Play reply in the circle to continue.'
+    : inputMode === 'sherpa' && state.active ? 'On-device listening: words are recognized in this page. No audio is uploaded.'
     : inputMode === 'microphone' && state.active ? 'Real microphone input; mock transcription only. Audio remains in this page, and no words are inferred.'
     : 'Local mock mode. Synthetic turns and fixed replies do not invoke an AI model. Silent playback is the default.';
   lifecycle.textContent = JSON.stringify({ active: state.active, phase: state.phase, microphone: state.inputState, playback: state.outputState, setupPending: state.setupPending, muted: state.muted, sessionEpoch: state.sessionEpoch, turnEpoch: state.turnEpoch, replyWaitMs: Math.round(state.replyWaitMs || 0) }, null, 2);
@@ -188,6 +192,10 @@ function renderState(state) {
 
 const agent = createConversationAgent({ input, host, playback, onState: renderState });
 circle = mountVoiceCircle({ container: byId('voice-circle'), agent, getStartOptions: () => ({ conversationId: 'mock-conversation' }) });
+const saved = (() => { try { return JSON.parse(localStorage.getItem('conversation-agent-demo-voice') || '{}'); } catch { return {}; } })();
+mountVoiceSettings({ container: byId('voice-settings'), playback: phoneVoice, input: sherpaInput,
+  selectedVoiceId: saved.voiceId || null, sensitivity: saved.sensitivity || 'normal',
+  onChange: value => { try { localStorage.setItem('conversation-agent-demo-voice', JSON.stringify(value)); } catch {} } });
 renderState(agent.state());
 mockTurnButton.addEventListener('click', () => syntheticInput.trigger());
 mockInterruptButton.addEventListener('click', () => syntheticInput.trigger({ interruptionOnly: true }));

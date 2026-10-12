@@ -197,7 +197,7 @@ test('circle works with strict style CSP and labels microphone pauses honestly',
 test('local mock demo completes start, synthetic turn, manual play, interruption and stop without network', async () => {
   const original = { document: globalThis.document, window: globalThis.window, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, fetch: globalThis.fetch };
   const container = new Element('main');
-  const controls = new Map(['demo-notice', 'lifecycle', 'mock-turn', 'mock-interrupt', 'browser-speech', 'manual-play', 'voice-circle'].map(name => [name, new Element(name === 'voice-circle' ? 'div' : 'button')]));
+  const controls = new Map(['demo-notice', 'lifecycle', 'mock-turn', 'mock-interrupt', 'browser-speech', 'manual-play', 'voice-circle', 'voice-settings'].map(name => [name, new Element(name.startsWith('voice-') ? 'div' : 'button')]));
   for (const control of controls.values()) container.appendChild(control);
   controls.get('manual-play').checked = true;
   const mock = new Element('input'); mock.value = 'mock'; mock.checked = true;

@@ -21,10 +21,11 @@
       <div class="options">
         <label><input type="radio" name="input-mode" value="mock" checked> Synthetic input</label>
         <label><input type="radio" name="input-mode" value="microphone"> Real microphone, mock transcript</label>
+        <label><input type="radio" name="input-mode" value="sherpa"> On-device listening (Sherpa)</label>
       </div>
-      <label><input id="browser-speech" type="checkbox"> Speak fixed demo replies with browser speech synthesis</label>
+      <label><input id="browser-speech" type="checkbox"> Speak fixed demo replies with the selected phone voice</label>
       <label><input id="manual-play" type="checkbox"> Simulate audio requiring a manual Play reply click</label>
-      <p class="help">Synthetic input and silent playback work without microphone permission. With the microphone selected, audio is captured locally to exercise the input path; the mock transcriber does not infer words. No captured audio is saved or sent by this demo. Optional speech uses only voices the browser reports as local; availability depends on your browser and operating system.</p>
+      <p class="help">Synthetic input and silent playback work without microphone permission. With the microphone selected, audio is captured locally to exercise the input path; the mock transcriber does not infer words. No captured audio is saved or sent by this demo. On-device listening first runs <code>npm run fetch:sherpa -- demo/sherpa</code> (about 60 MB, downloaded once and cached by the browser). Phone voices depend on the voices installed on your device.</p>
       <div class="options">
         <button id="mock-turn" type="button">Simulate spoken turn</button>
         <button id="mock-interrupt" type="button">Simulate speech interruption</button>
@@ -32,6 +33,7 @@
     </fieldset>
     <p id="demo-notice" class="demo-alert" role="status" aria-live="polite">Loading the local agent…</p>
     <div id="voice-circle"></div>
+    <div id="voice-settings"></div>
     <section class="events" aria-label="Demo lifecycle">
       <h2>Lifecycle state</h2>
       <pre id="lifecycle">No session yet.</pre>

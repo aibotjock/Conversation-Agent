@@ -2,6 +2,10 @@
 
 Reusable foreground voice conversation for browser applications, with **aibotjock/Conversation-Agent** as its dedicated public GitHub repository. StudyChat is the first integration, on its dedicated **feature/conversation-agent** branch. This project uses an original teal/gold circle and public APIs; it does not copy ChatGPT assets, branding or private services. Store publication remains on hold. No npm registry publication has occurred; the package remains marked private.
 
+## On-device voice (0.2.0)
+
+A free voice path needs no speech API: `createSherpaAudioInput` understands the microphone on the device (Silero voice detection plus a streaming recognizer from sherpa-onnx, in a Web Worker), and `createPhoneVoicePlayback` speaks replies with the device's own voices, starting with the first sentence. `mountVoiceSettings` offers five reply voices with previews and a microphone sensitivity control. Noise without recognizable words never starts a turn or interrupts a reply. Run `npm run fetch:sherpa -- <folder>` once to download the speech files (~60 MB). See [On-device speech](docs/ON_DEVICE_SPEECH.md) for setup, tuning, measurements and the licensing note. The cloud path below remains available.
+
 ## Boundaries
 
 The package manages capture, bounded microphone pre-roll, local turn detection, interruption, cancellation, captions and conversation state. The host manages authentication, transcription services, knowledge, response approval, persistent records and accounting. No medical knowledge or permanent credentials belong in the browser core.
@@ -51,13 +55,15 @@ First target: foreground Android Chrome over HTTPS. Native applications, embedde
 
 The package's **28 unique new test groups passed**. Scoped repeats were limited to a failed capture-limit case and changed circle wording; offline shutdown was one additional previously uncovered case. Integration/provider mocks are separate evidence; see [validation status](docs/VALIDATION_STATUS.md). No physical-phone latency or echo-separation result follows from these checks.
 
+The 0.2.0 on-device path adds 18 unit test groups (all 50 package groups pass) and 4 opt-in real-model groups (`npm run test:sherpa`); see [validation status](docs/VALIDATION_STATUS.md).
+
 To open the implemented second-host demo, run this from the repository root:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000/demo/`. Synthetic input and fixed replies require no credentials or provider calls. Optional real-microphone capture still returns an explicitly simulated transcript; optional device speech is a demo feature, not StudyChat's production fallback.
+Open `http://localhost:8000/demo/`. Synthetic input and fixed replies require no credentials or provider calls. For on-device listening in the demo, first run `npm run fetch:sherpa -- demo/sherpa`. Optional real-microphone capture still returns an explicitly simulated transcript; optional device speech is a demo feature, not StudyChat's production fallback.
 
 For new changes, run only new or affected groups with `node --test --test-name-pattern='affected scope' tests/example.test.js`. `npm test` runs the full package suite; do not repeat passing groups without a relevant change or documented failure.
 
