@@ -143,6 +143,8 @@ export function createConversationAgent({ input = null, host, playback = null, o
     }
     if (typeof reply.messageId !== 'string' || !reply.messageId) throw new Error('Audio requires a saved host message identity.');
     update({ outputState: 'preparing', message: 'Preparing audio.', audioBlocked: false, audioBlockReason: null });
+    // Lets on-device listening ignore the device's own voice picked up by the microphone.
+    input?.setOutputText?.(caption);
     await playback.play({ conversationId: snapshot.conversationId, messageId: reply.messageId,
       content: caption, signal: item.controller.signal,
       onPreparing(detail = {}) {
@@ -182,6 +184,16 @@ export function createConversationAgent({ input = null, host, playback = null, o
     if (typeof id !== 'string' || !id || seenUtterances.has(id)) return;
     seenUtterances.add(id); if (seenUtterances.size > 100) seenUtterances.delete(seenUtterances.values().next().value);
     const item = beginWork(); item.requestId = id;
+    // On-device recognizers deliver final text with the utterance; no upload or transcription request is needed.
+    if (typeof value.text === 'string') {
+      update({ audioBlocked: false, audioBlockReason: null, inputState: 'monitoring' });
+      try { await turn(value.text, item); }
+      catch (error) {
+        if (!current(item)) return;
+        cancelWork(); update({ outputState: 'idle', audioBlocked: false, audioBlockReason: null, message: 'The message was not completed. Type or speak again when ready.', warning: String(error?.message || 'The request failed.').slice(0, 300) });
+      }
+      return;
+    }
     update({ outputState: 'transcribing', audioBlocked: false, audioBlockReason: null, inputState: 'monitoring', userCaption: '', message: 'Transcribing your message.' });
     try {
       await sessionReady;
@@ -213,6 +225,11 @@ export function createConversationAgent({ input = null, host, playback = null, o
           update({ inputState: 'capturing', userCaption: '', message: 'Listening…' });
         },
         onUtterance: value => { void handleUtterance(value, epoch); },
+        // Live on-device captions while the person is still speaking.
+        onPartial(text) {
+          if (!sessionCurrent(epoch) || snapshot.muted || typeof text !== 'string') return;
+          update({ userCaption: text.slice(0, 12000) });
+        },
         onWarning: warning => { if (sessionCurrent(epoch)) update({ warning: String(warning).slice(0, 300) }); },
         onState: value => { if (sessionCurrent(epoch)) update({ inputState: value?.phase || 'monitoring', setupPending: value?.phase === 'starting' }); },
       });

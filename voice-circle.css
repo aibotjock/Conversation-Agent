@@ -22,3 +22,15 @@
 .conversation-voice-circle .voice-text-form button{justify-self:end}
 .conversation-voice-circle[data-reduced-motion="true"] *{transition:none!important;animation:none!important}
 @media(prefers-reduced-motion:reduce){.conversation-voice-circle *{transition:none!important;animation:none!important}}
+.conversation-voice-settings{font:16px/1.5 system-ui,sans-serif;color:#153b40;max-width:38rem;margin:1rem auto;display:grid;gap:1rem}
+.conversation-voice-settings .voice-settings-group{border:1px solid #d2e3df;border-radius:1rem;background:#f6faf9;padding:.85rem 1rem;margin:0;display:grid;gap:.6rem}
+.conversation-voice-settings legend{font-weight:700;padding:0 .3rem}
+.conversation-voice-settings .voice-settings-list{display:grid;gap:.45rem}
+.conversation-voice-settings .voice-settings-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;min-height:2.75rem}
+.conversation-voice-settings .voice-settings-choice{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;cursor:pointer}
+.conversation-voice-settings input[type=radio]{width:1.2rem;height:1.2rem;accent-color:#11666c}
+.conversation-voice-settings .voice-settings-tag{font-size:.75rem;color:#6b5420;background:#fff4d7;border-radius:1rem;padding:.05rem .45rem}
+.conversation-voice-settings .voice-settings-preview{font:inherit;font-size:.9rem;padding:.45rem .8rem;border:1px solid #9bbdb3;border-radius:.65rem;background:#fff;color:#174e54;cursor:pointer;min-height:2.5rem}
+.conversation-voice-settings .voice-settings-segments{display:flex;flex-wrap:wrap;gap:.4rem 1rem}
+.conversation-voice-settings .voice-settings-note{font-size:.85rem;color:#476368;margin:0}
+.conversation-voice-settings button:focus-visible,.conversation-voice-settings input:focus-visible{outline:3px solid #926911;outline-offset:3px}

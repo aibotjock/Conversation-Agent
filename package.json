@@ -1,18 +1,42 @@
 {
   "name": "@aibotjock/conversation-agent",
-  "version": "0.1.2",
-  "description": "Reusable foreground browser conversation controls with cancellable host adapters",
+  "version": "0.2.0",
+  "description": "Reusable foreground browser conversation controls with on-device listening and phone voices",
   "type": "module",
   "license": "UNLICENSED",
   "private": true,
   "types": "./index.d.ts",
   "exports": {
-    ".": { "types": "./index.d.ts", "import": "./index.js", "default": "./index.js" },
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    },
     "./browser-audio": "./src/browser-audio.js",
+    "./sherpa-input": "./src/sherpa-input.js",
+    "./sherpa-speech-worker.js": "./src/sherpa-speech-worker.js",
+    "./phone-voice": "./src/phone-voice.js",
+    "./voice-settings": "./src/voice-settings.js",
     "./voice-circle": "./src/voice-circle.js",
     "./server": "./server/openai-transcription.js"
   },
-  "files": ["index.js", "index.d.ts", "src", "server", "voice-circle.css", "README.md", "NOTICE"],
-  "engines": { "node": ">=24" },
-  "scripts": { "test": "node --test tests/*.test.js" }
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "src",
+    "server",
+    "scripts/fetch-sherpa-assets.mjs",
+    "voice-circle.css",
+    "README.md",
+    "NOTICE",
+    "docs/ON_DEVICE_SPEECH.md"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "test:sherpa": "node --test tests/integration/*.test.js",
+    "fetch:sherpa": "node scripts/fetch-sherpa-assets.mjs"
+  }
 }
